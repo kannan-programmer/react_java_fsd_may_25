@@ -32,7 +32,7 @@ public class TestPurchaseDaoImpl {
     }
     
     @Test
-    void testFinalPriceWithOFF10Coupon() {
+    void testFinalPriceWithSUPER_OFFERCoupon() {
         double originalPrice = 1000.0;
         double expected = 900.0;
         double actual = calculateFinalPrice(originalPrice, Coupon.SUPER_OFFER.getDiscountPercentage());
@@ -40,7 +40,7 @@ public class TestPurchaseDaoImpl {
     }
 
     @Test
-    void testFinalPriceWithOFF20Coupon() {
+    void testFinalPriceWitSUMMER_SALECoupon() {
         double originalPrice = 2000.0;
         double expected = 1600.0;
         double actual = calculateFinalPrice(originalPrice, Coupon.SUMMER_SALE.getDiscountPercentage());
