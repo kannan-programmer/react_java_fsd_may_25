@@ -43,7 +43,6 @@ public class TestCategoryDaoImpl {
 
 	    @Test
 	    void testDeleteCategory() throws ClassNotFoundException, InvaliIdException {
-	        boolean deleted = true; 
-	        assertTrue(deleted); 
-	    }
+        boolean deleted = category.deleteCategory(3);
+        assertTrue(deleted, "Category should be deleted successfully");
 }
