@@ -14,7 +14,7 @@ insert into book (title, price, author, publication_house, category, book_count,
 ('sports trivia', 250.00, 'tony hawk', 'mcgraw hill', 'sports', 8, 'in stock'),
 ('future fiction', 400.00, 'isaac clarke', 'dreamfolks', 'fiction', 4, 'out_of_stock');
 
-/* procedure 1 to fetch all books in_stock */
+/*  fetch all books in_stock */
 delimiter $$
 create procedure proc_fetch_instock_books(in max_price double)
 begin
@@ -22,7 +22,7 @@ begin
 end ;
 call proc_fetch_instock_books(300);
 
-/* procedure 2 to delete the book from particular publication */
+/* delete the book from particular publication */
 delimiter $$
 create procedure proc_delete_by_publication(in pub_house varchar(255))
 begin
@@ -32,7 +32,7 @@ call proc_delete_by_publication('dreamfolks');
 
 select * from book where publication_house ='dreamfolks';
 
-/* procedure 3 update the price of book based on category */
+/* update the price of book based on category */
 delimiter $$
 create procedure proc_update_price_by_category(in cat varchar(100),in percent_change double)
 begin
