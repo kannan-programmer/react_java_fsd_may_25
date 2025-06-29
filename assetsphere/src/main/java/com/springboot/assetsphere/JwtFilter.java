@@ -32,6 +32,8 @@ public class JwtFilter extends OncePerRequestFilter{
 									FilterChain filterChain)
 			throws ServletException, IOException {
 		
+		
+
 		try {
 			String username = null;
 		     String jwt = null;

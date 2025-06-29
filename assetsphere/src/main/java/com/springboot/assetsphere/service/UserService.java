@@ -1,17 +1,18 @@
 package com.springboot.assetsphere.service;
 
 import java.time.LocalDate;
+
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.springboot.assetsphere.enums.Status;
 import com.springboot.assetsphere.exception.ResourceNotFoundException;
-import com.springboot.assetsphere.model.Employee;
 import com.springboot.assetsphere.model.User;
 import com.springboot.assetsphere.repository.EmployeeRepository;
+import com.springboot.assetsphere.repository.HrRepository;
+import com.springboot.assetsphere.repository.ITSupportRepository;
 import com.springboot.assetsphere.repository.UserRepository;
 
 @Service
@@ -20,13 +21,19 @@ public class UserService {
 	private UserRepository userRepository;
 	private PasswordEncoder passwordEncoder;
 	private EmployeeRepository employeeRepo;
+	private ITSupportRepository itSupportRepo;
+	private HrRepository hrRepo;
 
-	public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-			EmployeeRepository employeeRepo) {
+
+
+	public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, EmployeeRepository employeeRepo,
+			ITSupportRepository itSupportRepo, HrRepository hrRepo) {
 		super();
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.employeeRepo = employeeRepo;
+		this.itSupportRepo = itSupportRepo;
+		this.hrRepo = hrRepo;
 	}
 
 	public User signUp(User user) {
@@ -57,30 +64,43 @@ public class UserService {
 	}
 	
 	public Object getUserInfo(String username) {
-		System.out.println("getUserInfo() started");
+	    System.out.println("getUserInfo() started");
 
 	    User user = userRepository.getByUsername(username);
-
 	    if (user == null) {
 	        System.out.println("User not found");
 	        throw new RuntimeException("User not found with username: " + username);
 	    }
 
 	    switch (user.getRole()) {
-	        case EMPLOYEE:
 	        case HR:
+	            return hrRepo.findByUserUsername(username)
+	                    .orElseThrow(() -> {
+	                        System.out.println("HR not found");
+	                        return new RuntimeException("HR info not found for username: " + username);
+	                    });
+
 	        case IT_SUPPORT:
-	            Optional<Employee> employee = employeeRepo.findByUserUsername(username);
-	            if (employee == null) {
-	                System.out.println("Employee not found");
-	                throw new RuntimeException("Employee not found for username: " + username);
-	            }
-	            System.out.println("getUserInfo() returning employee");
-	            return employee;
+	            return itSupportRepo.findByUserUsername(username)
+	                    .orElseThrow(() -> {
+	                        System.out.println("IT Support not found");
+	                        return new RuntimeException("IT Support info not found for username: " + username);
+	                    });
+
+	        case EMPLOYEE:
+	            return employeeRepo.findByUserUsername(username)
+	                    .orElseThrow(() -> {
+	                        System.out.println("Employee not found");
+	                        return new RuntimeException("Employee not found for username: " + username);
+	                    });
 
 	        default:
-	            System.out.println("getUserInfo() returning user");
+	            System.out.println("Returning raw User object");
 	            return user;
-	    }
+	    }}
+
+	public Optional<User> findByUsername(String username) {
+		// TODO Auto-generated method stub
+		return userRepository.findByUsername(username);
 	}
 }

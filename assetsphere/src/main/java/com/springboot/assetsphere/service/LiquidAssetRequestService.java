@@ -18,6 +18,8 @@ import com.springboot.assetsphere.model.LiquidAssetRequest;
 import com.springboot.assetsphere.repository.EmployeeRepository;
 import com.springboot.assetsphere.repository.LiquidAssetRequestRepository;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class LiquidAssetRequestService {
 
@@ -28,8 +30,8 @@ public class LiquidAssetRequestService {
     private final LiquidAssetRequestDTO liquidAssetRequestDTO;
 
     public LiquidAssetRequestService(LiquidAssetRequestRepository liquidAssetRequestRepo,
-                                    EmployeeRepository employeeRepo,
-                                    LiquidAssetRequestDTO liquidAssetRequestDTO) {
+                                     EmployeeRepository employeeRepo,
+                                     LiquidAssetRequestDTO liquidAssetRequestDTO) {
         this.liquidAssetRequestRepo = liquidAssetRequestRepo;
         this.employeeRepo = employeeRepo;
         this.liquidAssetRequestDTO = liquidAssetRequestDTO;
@@ -62,7 +64,8 @@ public class LiquidAssetRequestService {
     public List<LiquidAssetRequestDTO> getByEmployeeId(int employeeId, int page, int size) {
         logger.info("Fetching liquid asset requests by employee id {}, page: {}, size: {}", employeeId, page, size);
         Pageable pageable = PageRequest.of(page, size);
-        return liquidAssetRequestDTO.convertLiquidAssetRequestToDto(liquidAssetRequestRepo.findByEmployeeId(employeeId, pageable).getContent());
+        return liquidAssetRequestDTO.convertLiquidAssetRequestToDto(
+                liquidAssetRequestRepo.findByEmployeeId(employeeId, pageable).getContent());
     }
 
     public List<LiquidAssetRequestDTO> getByStatus(String status, int page, int size) throws ResourceNotFoundException {
@@ -75,18 +78,52 @@ public class LiquidAssetRequestService {
             throw new ResourceNotFoundException("Invalid status: " + status);
         }
         Pageable pageable = PageRequest.of(page, size);
-        return liquidAssetRequestDTO.convertLiquidAssetRequestToDto(liquidAssetRequestRepo.findByStatus(enumStatus, pageable).getContent());
+        return liquidAssetRequestDTO.convertLiquidAssetRequestToDto(
+                liquidAssetRequestRepo.findByStatus(enumStatus, pageable).getContent());
     }
 
-    public List<LiquidAssetRequestDTO> getByUserEmail(String email, int page, int size) {
-        logger.info("Fetching liquid asset requests by user email {}, page: {}, size: {}", email, page, size);
-        Pageable pageable = PageRequest.of(page, size);
-        return liquidAssetRequestDTO.convertLiquidAssetRequestToDto(liquidAssetRequestRepo.findByEmployeeUserEmail(email, pageable).getContent());
+    public List<LiquidAssetRequestDTO> getByUserEmail(String name) {
+        logger.info("Fetching liquid asset requests by user email: {}", name);
+        return liquidAssetRequestDTO.convertLiquidAssetRequestToDto(
+                liquidAssetRequestRepo.findByEmployeeUserEmail(name));
     }
 
-    public List<LiquidAssetRequestDTO> getByUsername(String username, int page, int size) {
-        logger.info("Fetching liquid asset requests by username {}, page: {}, size: {}", username, page, size);
-        Pageable pageable = PageRequest.of(page, size);
-        return liquidAssetRequestDTO.convertLiquidAssetRequestToDto(liquidAssetRequestRepo.findByEmployeeUserUsername(username, pageable).getContent());
+    public List<LiquidAssetRequestDTO> getByUsername(String username) {
+        return liquidAssetRequestDTO.convertLiquidAssetRequestToDto(
+                liquidAssetRequestRepo.findByEmployeeUserUsername(username));
+    }
+
+    @Transactional
+    public LiquidAssetRequest updateRequestByUsername(String username, LiquidAssetRequest updatedRequest) throws ResourceNotFoundException {
+        logger.info("Updating liquid asset request for username: {}", username);
+        LiquidAssetRequest request = liquidAssetRequestRepo.findByEmployeeUsername(username)
+            .orElseThrow(() -> new ResourceNotFoundException("Liquid Asset Request not found for username: " + username));
+
+        if (updatedRequest.getItemName() != null)
+            request.setItemName(updatedRequest.getItemName());
+        if (updatedRequest.getItemCategory() != null)
+            request.setItemCategory(updatedRequest.getItemCategory());
+        if (updatedRequest.getPurchaseAmount() != null)
+            request.setPurchaseAmount(updatedRequest.getPurchaseAmount());
+        if (updatedRequest.getPurchaseDate() != null)
+            request.setPurchaseDate(updatedRequest.getPurchaseDate());
+        if (updatedRequest.getDocumentProofUrl() != null)
+            request.setDocumentProofUrl(updatedRequest.getDocumentProofUrl());
+        if (updatedRequest.getStatus() != null)
+            request.setStatus(updatedRequest.getStatus());
+        if (updatedRequest.getAdminComments() != null)
+            request.setAdminComments(updatedRequest.getAdminComments());
+        if (updatedRequest.getResolvedAt() != null)
+            request.setResolvedAt(updatedRequest.getResolvedAt());
+
+        return liquidAssetRequestRepo.save(request);
+    }
+
+    @Transactional
+    public void deleteRequestByUsername(String username) throws ResourceNotFoundException {
+        logger.info("Deleting liquid asset request for username: {}", username);
+        LiquidAssetRequest existing = liquidAssetRequestRepo.findByEmployeeUsername(username)
+            .orElseThrow(() -> new ResourceNotFoundException("Liquid Asset Request not found for username: " + username));
+        liquidAssetRequestRepo.delete(existing);
     }
 }

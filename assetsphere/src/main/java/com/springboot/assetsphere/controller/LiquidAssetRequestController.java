@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/liquidassetrequest")
+@CrossOrigin(origins = "http://localhost:5173")
 public class LiquidAssetRequestController {
 
     Logger logger = LoggerFactory.getLogger(LiquidAssetRequestController.class);
@@ -29,11 +30,10 @@ public class LiquidAssetRequestController {
     @PostMapping("/add/{employeeId}")
     public ResponseEntity<?> submitLiquidAssetRequest(@PathVariable int employeeId,
                                                       @RequestBody LiquidAssetRequest request) throws ResourceNotFoundException {
-        logger.info("Submitting liquid asset request for employee ID: " + employeeId);
+        logger.info("Submitting liquid asset request for employee ID: {}", employeeId);
         liquidAssetRequestService.addLiquidAssetRequest(employeeId, request);
         Map<String, String> map = new HashMap<>();
         map.put("message", "Liquid Asset Request Submitted Successfully");
-        logger.info("Liquid asset request submitted successfully for employee ID: " + employeeId);
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 
@@ -41,7 +41,7 @@ public class LiquidAssetRequestController {
     public ResponseEntity<List<LiquidAssetRequestDTO>> getAllRequests(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "1000000") int size) {
-        logger.info("Fetching all liquid asset requests, page: " + page + ", size: " + size);
+        logger.info("Fetching all liquid asset requests - page: {}, size: {}", page, size);
         return ResponseEntity.ok(liquidAssetRequestService.getAllLiquidAssetRequests(page, size));
     }
 
@@ -50,7 +50,7 @@ public class LiquidAssetRequestController {
             @PathVariable int employeeId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "1000000") int size) {
-        logger.info("Fetching liquid asset requests for employee ID: " + employeeId);
+        logger.info("Fetching liquid asset requests for employee ID: {}", employeeId);
         return ResponseEntity.ok(liquidAssetRequestService.getByEmployeeId(employeeId, page, size));
     }
 
@@ -59,25 +59,34 @@ public class LiquidAssetRequestController {
             @PathVariable String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "1000000") int size) throws ResourceNotFoundException {
-        logger.info("Fetching liquid asset requests by status: " + status);
+        logger.info("Fetching liquid asset requests by status: {}", status);
         return ResponseEntity.ok(liquidAssetRequestService.getByStatus(status, page, size));
     }
 
-    @GetMapping("/getEmail/{email}")
-    public ResponseEntity<List<LiquidAssetRequestDTO>> getByUserEmail(
-            @PathVariable String email,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "1000000") int size) {
-        logger.info("Fetching liquid asset requests by email: " + email);
-        return ResponseEntity.ok(liquidAssetRequestService.getByUserEmail(email, page, size));
+    @GetMapping("/getName/{name}")
+    public ResponseEntity<List<LiquidAssetRequestDTO>> getByName(@PathVariable String name) {
+        logger.info("Fetching liquid asset requests by name/email: {}", name);
+        return ResponseEntity.ok(liquidAssetRequestService.getByUserEmail(name));
     }
 
     @GetMapping("/username/{username}")
-    public ResponseEntity<List<LiquidAssetRequestDTO>> getByUsername(
-            @PathVariable String username,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "1000000") int size) {
-        logger.info("Fetching liquid asset requests by username: " + username);
-        return ResponseEntity.ok(liquidAssetRequestService.getByUsername(username, page, size));
+    public ResponseEntity<List<LiquidAssetRequestDTO>> getByUsername(@PathVariable String username) {
+        return ResponseEntity.ok(liquidAssetRequestService.getByUsername(username));
+    }
+
+    @PutMapping("/update/{username}")
+    public ResponseEntity<LiquidAssetRequest> updateByUsername(@PathVariable String username,
+                                                                @RequestBody LiquidAssetRequest updatedRequest) throws ResourceNotFoundException {
+        logger.info("Updating liquid asset request by username: {}", username);
+        return ResponseEntity.ok(liquidAssetRequestService.updateRequestByUsername(username, updatedRequest));
+    }
+
+    @DeleteMapping("/delete/{username}")
+    public ResponseEntity<?> deleteByUsername(@PathVariable String username) throws ResourceNotFoundException {
+        logger.info("Deleting liquid asset request by username: {}", username);
+        liquidAssetRequestService.deleteRequestByUsername(username);
+        Map<String, String> map = new HashMap<>();
+        map.put("message", "Liquid Asset Request deleted successfully for username: " + username);
+        return ResponseEntity.ok(map);
     }
 }

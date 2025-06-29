@@ -21,6 +21,7 @@ public class Asset {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     
+    @Column(unique = true)
     private String assetNo;
     private String assetName;
     private String model;

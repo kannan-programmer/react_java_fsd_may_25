@@ -34,6 +34,29 @@ public class AssetAudit {
     @ManyToOne
     private Employee employee;
 
+    @ManyToOne
+    private AssetAllocation assetallocation;
+    
+    @ManyToOne
+    private AssetReturnRequest assetReturnRequest;
+
+    
+	public AssetReturnRequest getAssetReturnRequest() {
+		return assetReturnRequest;
+	}
+
+	public void setAssetReturnRequest(AssetReturnRequest assetReturnRequest) {
+		this.assetReturnRequest = assetReturnRequest;
+	}
+
+	public AssetAllocation getAssetallocation() {
+		return assetallocation;
+	}
+
+	public void setAssetallocation(AssetAllocation assetallocation) {
+		this.assetallocation = assetallocation;
+	}
+
 	public int getId() {
 		return id;
 	}

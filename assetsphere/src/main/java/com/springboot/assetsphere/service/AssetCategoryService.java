@@ -10,6 +10,8 @@ import com.springboot.assetsphere.exception.ResourceNotFoundException;
 import com.springboot.assetsphere.model.AssetCategory;
 import com.springboot.assetsphere.repository.AssetCategoryRepository;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class AssetCategoryService {
 
@@ -22,9 +24,9 @@ public class AssetCategoryService {
 		this.assetcategoryRepo = assetcategoryRepo;
 	}
 
-	public void addCategory(AssetCategory assetCategory) {
+	public AssetCategory addCategory(AssetCategory assetCategory) {
 		logger.info("Adding new asset category: {}", assetCategory.getName());
-		assetcategoryRepo.save(assetCategory);
+		return assetcategoryRepo.save(assetCategory);
 	}
 
 	public List<AssetCategory> getAllCategory() {
@@ -42,4 +44,23 @@ public class AssetCategoryService {
     	logger.info("Fetching asset categories by name: {}", name);
         return assetcategoryRepo.findByName(name);
     }
+    
+    @Transactional
+    public AssetCategory updateCategoryByName(String name, AssetCategory updatedCategory) throws ResourceNotFoundException {
+        AssetCategory existing = assetcategoryRepo.findByCName(name)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with name: " + name));
+
+        if (updatedCategory.getDescription() != null)
+            existing.setDescription(updatedCategory.getDescription());
+
+        return assetcategoryRepo.save(existing);
+    }
+
+    @Transactional
+    public void deleteCategoryByName(String name) throws ResourceNotFoundException {
+        AssetCategory category = assetcategoryRepo.findByCName(name)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with name: " + name));
+        assetcategoryRepo.delete(category);
+    }
+
 }

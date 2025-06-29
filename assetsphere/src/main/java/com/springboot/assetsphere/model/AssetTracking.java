@@ -3,7 +3,9 @@ package com.springboot.assetsphere.model;
 import java.time.LocalDateTime;
 
 import com.springboot.assetsphere.enums.RequestStatus;
+import com.springboot.assetsphere.enums.TrackingAction;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -21,8 +23,9 @@ public class AssetTracking {
     private int id;
 
 
+    
     @Enumerated(EnumType.STRING)
-    private RequestStatus action;
+    private TrackingAction action;
 
     private String remarks;
     private LocalDateTime timestamp;
@@ -42,11 +45,11 @@ public class AssetTracking {
 		this.id = id;
 	}
 
-	public RequestStatus getAction() {
+	public TrackingAction getAction() {
 		return action;
 	}
 
-	public void setAction(RequestStatus action) {
+	public void setAction(TrackingAction action) {
 		this.action = action;
 	}
 
@@ -81,6 +84,7 @@ public class AssetTracking {
 	public void setEmployee(Employee employee) {
 		this.employee = employee;
 	}
+
     
     
 }

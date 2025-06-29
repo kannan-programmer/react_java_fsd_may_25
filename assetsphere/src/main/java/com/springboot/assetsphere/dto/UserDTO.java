@@ -1,20 +1,21 @@
 package com.springboot.assetsphere.dto;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.stereotype.Component;
 
+import com.springboot.assetsphere.enums.Role;
+import com.springboot.assetsphere.model.Employee;
+import com.springboot.assetsphere.model.Hr;
+import com.springboot.assetsphere.model.ITSupport;
 import com.springboot.assetsphere.model.User;
 
 @Component
 public class UserDTO {
 
-    private String username;
-    private String email;
-    private String password;
+    private String username;  // Treated as email
     private String role;
     private String status;
+    private String name;       // From Employee, Hr, or ITSupport
+    private String imageUrl;   // From Employee, Hr, or ITSupport
 
     // Getters and Setters
     public String getUsername() {
@@ -23,22 +24,6 @@ public class UserDTO {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public String getRole() {
@@ -57,18 +42,43 @@ public class UserDTO {
         this.status = status;
     }
 
-    // Conversion method from User entities to DTOs
-    public List<UserDTO> convertUserToDto(List<User> list) {
-        List<UserDTO> dtoList = new ArrayList<>();
-        list.forEach(user -> {
-            UserDTO dto = new UserDTO();
-            dto.setUsername(user.getUsername());
-            dto.setEmail(user.getEmail());
-            dto.setPassword(user.getPassword()); // Typically, you wouldn’t expose passwords in DTOs!
-            dto.setRole(user.getRole().toString());
-            dto.setStatus(user.getStatus().toString());
-            dtoList.add(dto);
-        });
-        return dtoList;
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    // Conversion from User + role-specific object
+    public UserDTO fromUserAndEntity(User user, Object roleEntity) {
+        UserDTO dto = new UserDTO();
+        dto.setUsername(user.getUsername());
+        dto.setRole(user.getRole().toString());
+        dto.setStatus(user.getStatus().toString());
+
+        if (user.getRole() == Role.EMPLOYEE && roleEntity instanceof Employee emp) {
+            dto.setName(emp.getName());
+            dto.setImageUrl(emp.getImageUrl());
+        } else if (user.getRole() == Role.HR && roleEntity instanceof Hr hr) {
+            dto.setName(hr.getName());
+            dto.setImageUrl(hr.getImageUrl());
+        } else if (user.getRole() == Role.IT_SUPPORT && roleEntity instanceof ITSupport it) {
+            dto.setName(it.getName());
+            dto.setImageUrl(it.getImageUrl());
+        } else {
+            dto.setName("N/A");
+            dto.setImageUrl(null);
+        }
+
+        return dto;
     }
 }

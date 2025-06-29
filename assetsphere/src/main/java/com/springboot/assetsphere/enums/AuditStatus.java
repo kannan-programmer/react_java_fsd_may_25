@@ -1,6 +1,11 @@
 package com.springboot.assetsphere.enums;
 
 public enum AuditStatus {
-
-	PENDING, VERIFIED, REJECTED
+    VERIFIED,
+    REJECTED,
+    PENDING,
+    WORKING,
+    NOT_WORKING,
+    ASSET_MISSING
 }
+

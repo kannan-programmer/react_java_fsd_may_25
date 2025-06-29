@@ -1,5 +1,7 @@
 package com.springboot.assetsphere.repository;
 
+import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,9 +19,17 @@ public interface LiquidAssetRequestRepository extends JpaRepository<LiquidAssetR
     @Query("SELECT l FROM LiquidAssetRequest l WHERE l.status = ?1")
     Page<LiquidAssetRequest> findByStatus(RequestStatus status, Pageable pageable);
 
-    @Query("SELECT l FROM LiquidAssetRequest l WHERE l.employee.user.email = ?1")
-    Page<LiquidAssetRequest> findByEmployeeUserEmail(String email, Pageable pageable);
+    // Now returns a list (no pagination)
+    @Query("SELECT l FROM LiquidAssetRequest l WHERE l.employee.name = ?1")
+    List<LiquidAssetRequest> findByEmployeeUserEmail(String name);
 
+    // Now returns a list (no pagination)
     @Query("SELECT l FROM LiquidAssetRequest l WHERE l.employee.user.username = ?1")
-    Page<LiquidAssetRequest> findByEmployeeUserUsername(String username, Pageable pageable);
+    List<LiquidAssetRequest> findByEmployeeUserUsername(String username);
+
+    @Query("SELECT r FROM LiquidAssetRequest r WHERE r.employee.user.username = ?1")
+    Optional<LiquidAssetRequest> findByEmployeeUsername(String username);
+
+    @Query("SELECT COUNT(la) FROM LiquidAssetRequest la")
+    int countAll();
 }

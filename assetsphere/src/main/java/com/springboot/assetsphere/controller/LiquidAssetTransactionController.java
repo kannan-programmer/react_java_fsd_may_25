@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/liquidassettransaction")
+@CrossOrigin(origins = "http://localhost:5173")
 public class LiquidAssetTransactionController {
 
     Logger logger = LoggerFactory.getLogger(LiquidAssetTransactionController.class);
@@ -31,11 +32,11 @@ public class LiquidAssetTransactionController {
                                                @PathVariable int requestId,
                                                @RequestBody LiquidAssetTransaction transaction)
             throws ResourceNotFoundException {
-        logger.info("Creating transaction for employeeId: " + employeeId + ", requestId: " + requestId);
         transactionService.createTransaction(employeeId, requestId, transaction);
+        logger.info("Transaction created successfully for employeeId: {}", employeeId);
+
         Map<String, String> map = new HashMap<>();
         map.put("message", "Liquid Asset Transaction Created Successfully");
-        logger.info("Transaction created successfully for employeeId: " + employeeId);
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 
@@ -43,25 +44,36 @@ public class LiquidAssetTransactionController {
     public ResponseEntity<List<LiquidAssetTransactionDTO>> getAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "1000000") int size) {
-        logger.info("Fetching all transactions, page: " + page + ", size: " + size);
         return ResponseEntity.ok(transactionService.getAllTransactions(page, size));
     }
 
     @GetMapping("/getByEmployee/{employeeId}")
-    public ResponseEntity<List<LiquidAssetTransactionDTO>> getByEmployee(
-            @PathVariable int employeeId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "1000000") int size) {
-        logger.info("Fetching transactions by employeeId: " + employeeId);
-        return ResponseEntity.ok(transactionService.getByEmployeeId(employeeId, page, size));
+    public ResponseEntity<List<LiquidAssetTransactionDTO>> getByEmployee(@PathVariable int employeeId) {
+        return ResponseEntity.ok(transactionService.getByEmployeeId(employeeId));
     }
 
     @GetMapping("/getByStatus/{status}")
-    public ResponseEntity<List<LiquidAssetTransactionDTO>> getByStatus(
-            @PathVariable String status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "1000000") int size) throws ResourceNotFoundException {
-        logger.info("Fetching transactions by status: " + status);
+    public ResponseEntity<List<LiquidAssetTransactionDTO>> getByStatus(@PathVariable String status,
+                                                                       @RequestParam(defaultValue = "0") int page,
+                                                                       @RequestParam(defaultValue = "1000000") int size)
+            throws ResourceNotFoundException {
         return ResponseEntity.ok(transactionService.getByStatus(status, page, size));
+    }
+
+    @PutMapping("/update/{username}")
+    public ResponseEntity<LiquidAssetTransaction> updateByUsername(@PathVariable String username,
+                                                                   @RequestBody LiquidAssetTransaction transaction)
+            throws ResourceNotFoundException {
+        return ResponseEntity.ok(transactionService.updateTransactionByUsername(username, transaction));
+    }
+
+    @DeleteMapping("/delete/{username}")
+    public ResponseEntity<Map<String, String>> deleteByUsername(@PathVariable String username) throws ResourceNotFoundException {
+        logger.info("Deleting transaction for username: {}", username);
+        transactionService.deleteTransactionByUsername(username);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Transaction deleted successfully for username: " + username);
+        return ResponseEntity.ok(response);
     }
 }

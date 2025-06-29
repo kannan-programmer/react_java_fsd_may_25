@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.springboot.assetsphere.dto.ServiceRequestDTO;
 import com.springboot.assetsphere.enums.ServiceStatus;
+import com.springboot.assetsphere.exception.AssetNotFoundException;
 import com.springboot.assetsphere.exception.ResourceNotFoundException;
 import com.springboot.assetsphere.model.Asset;
 import com.springboot.assetsphere.model.Employee;
@@ -18,6 +19,10 @@ import com.springboot.assetsphere.model.ServiceRequest;
 import com.springboot.assetsphere.repository.AssetRepository;
 import com.springboot.assetsphere.repository.EmployeeRepository;
 import com.springboot.assetsphere.repository.ServiceRequestRepository;
+
+import com.springboot.assetsphere.enums.ServiceStatus;
+import com.springboot.assetsphere.enums.AssetStatus;
+import jakarta.transaction.Transactional;
 
 @Service
 public class ServiceRequestService {
@@ -39,71 +44,99 @@ public class ServiceRequestService {
         this.serviceRequestDTO = serviceRequestDTO;
     }
 
-    public ServiceRequest submitServiceRequest(int employeeId, int assetId, ServiceRequest request) throws ResourceNotFoundException {
-        logger.info("submitServiceRequest started");
+    public ServiceRequest submitServiceRequest(int employeeId, int assetId, ServiceRequest request) throws ResourceNotFoundException, AssetNotFoundException {
+        logger.info("Submitting service request");
+
         Employee employee = employeeRepo.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employeeId));
 
         Asset asset = assetRepo.findById(assetId)
-                .orElseThrow(() -> new ResourceNotFoundException("Asset not found with ID: " + assetId));
+                .orElseThrow(() -> new AssetNotFoundException("Asset not found with ID: " + assetId));
 
         request.setEmployee(employee);
         request.setAsset(asset);
         request.setRequestedAt(LocalDateTime.now());
         request.setStatus(ServiceStatus.IN_PROGRESS);
 
-        logger.info("submitServiceRequest completed");
         return serviceRequestRepo.save(request);
     }
 
     public List<ServiceRequestDTO> getAllServiceRequests(int page, int size) {
-        logger.info("getAllServiceRequests started");
         Pageable pageable = PageRequest.of(page, size);
-        List<ServiceRequestDTO> result = serviceRequestDTO.convertServiceRequestToDto(serviceRequestRepo.findAll(pageable).getContent());
-        logger.info("getAllServiceRequests completed");
-        return result;
+        return serviceRequestDTO.convertServiceRequestToDto(
+                serviceRequestRepo.findAll(pageable).getContent());
     }
 
-    public List<ServiceRequestDTO> getByEmployeeId(int employeeId, int page, int size) {
-        logger.info("getByEmployeeId started");
-        Pageable pageable = PageRequest.of(page, size);
-        List<ServiceRequestDTO> result = serviceRequestDTO.convertServiceRequestToDto(serviceRequestRepo.findByEmployeeId(employeeId, pageable).getContent());
-        logger.info("getByEmployeeId completed");
-        return result;
+    public List<ServiceRequestDTO> getByEmployeeId(int employeeId) {
+        return serviceRequestDTO.convertServiceRequestToDto(
+                serviceRequestRepo.findByEmployeeId(employeeId));
     }
 
-    public List<ServiceRequestDTO> getByAssetId(int assetId, int page, int size) {
-        logger.info("getByAssetId started");
-        Pageable pageable = PageRequest.of(page, size);
-        List<ServiceRequestDTO> result = serviceRequestDTO.convertServiceRequestToDto(serviceRequestRepo.findByAssetId(assetId, pageable).getContent());
-        logger.info("getByAssetId completed");
-        return result;
+    public List<ServiceRequestDTO> getByAssetId(int assetId) {
+        return serviceRequestDTO.convertServiceRequestToDto(
+                serviceRequestRepo.findByAssetId(assetId));
     }
 
-    public List<ServiceRequestDTO> getByStatus(String status, int page, int size) {
-        logger.info("getByStatus started");
+    public List<ServiceRequestDTO> getByStatus(String status, int page, int size) throws ResourceNotFoundException {
+        ServiceStatus serviceStatus;
+        try {
+            serviceStatus = ServiceStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid service status: {}", status);
+            throw new ResourceNotFoundException("Invalid status: " + status);
+        }
+
         Pageable pageable = PageRequest.of(page, size);
-        List<ServiceRequestDTO> result = serviceRequestDTO.convertServiceRequestToDto(
-                serviceRequestRepo.findByStatus(ServiceStatus.valueOf(status.toUpperCase()), pageable).getContent());
-        logger.info("getByStatus completed");
-        return result;
+        return serviceRequestDTO.convertServiceRequestToDto(
+                serviceRequestRepo.findByStatus(serviceStatus, pageable).getContent());
     }
 
-    public List<ServiceRequestDTO> getByUserEmail(String email, int page, int size) {
-        logger.info("getByUserEmail started");
-        Pageable pageable = PageRequest.of(page, size);
-        List<ServiceRequestDTO> result = serviceRequestDTO.convertServiceRequestToDto(
-                serviceRequestRepo.findByEmployeeUserEmail(email, pageable).getContent());
-        logger.info("getByUserEmail completed");
-        return result;
+    public List<ServiceRequestDTO> getByName(String name) {
+        return serviceRequestDTO.convertServiceRequestToDto(
+                serviceRequestRepo.findByEmployeeName(name));
     }
 
-    public List<ServiceRequestDTO> getByUsername(String username, int page, int size) {
-        logger.info("getByUsername started");
-        Pageable pageable = PageRequest.of(page, size);
-        List<ServiceRequestDTO> result = serviceRequestDTO.convertServiceRequestToDto(
-                serviceRequestRepo.findByEmployeeUserUsername(username, pageable).getContent());
-        logger.info("getByUsername completed");
-        return result;
+    public List<ServiceRequestDTO> getByUsername(String username) {
+        return serviceRequestDTO.convertServiceRequestToDto(
+                serviceRequestRepo.findByEmployeeUserUsername(username));
+    }
+
+    @Transactional
+    public ServiceRequest updateById(int id, ServiceRequest updated) throws ResourceNotFoundException {
+        logger.info("Updating service request with ID: {}", id);
+
+        ServiceRequest request = serviceRequestRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Service request not found with ID: " + id));
+
+        if (updated.getStatus() != null) {
+            request.setStatus(updated.getStatus());
+
+            if (updated.getStatus() == ServiceStatus.IN_PROGRESS) {
+                if (request.getAsset() != null) {
+                    request.getAsset().setStatus(AssetStatus.IN_SERVICE);
+                }
+            }
+        }
+
+        if (updated.getDescription() != null) {
+            request.setDescription(updated.getDescription());
+        }
+
+        if (updated.getAdminComments() != null) {
+            request.setAdminComments(updated.getAdminComments());
+        }
+
+        return serviceRequestRepo.save(request);
+    }
+
+
+    @Transactional
+    public void deleteById(int id) throws ResourceNotFoundException {
+        logger.info("Deleting service request with ID: {}", id);
+
+        ServiceRequest request = serviceRequestRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Service request not found with ID: " + id));
+        
+        serviceRequestRepo.delete(request);
     }
 }

@@ -19,6 +19,8 @@ import com.springboot.assetsphere.repository.EmployeeRepository;
 import com.springboot.assetsphere.repository.LiquidAssetRequestRepository;
 import com.springboot.assetsphere.repository.LiquidAssetTransactionRepository;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class LiquidAssetTransactionService {
 
@@ -44,15 +46,10 @@ public class LiquidAssetTransactionService {
         logger.info("Creating liquid asset transaction for employeeId {} and requestId {}", employeeId, requestId);
 
         Employee employee = employeeRepo.findById(employeeId)
-                .orElseThrow(() -> {
-                    logger.error("Employee not found with ID {}", employeeId);
-                    return new ResourceNotFoundException("Employee not found");
-                });
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
+
         LiquidAssetRequest request = requestRepo.findById(requestId)
-                .orElseThrow(() -> {
-                    logger.error("Liquid asset request not found with ID {}", requestId);
-                    return new ResourceNotFoundException("Liquid asset request not found");
-                });
+                .orElseThrow(() -> new ResourceNotFoundException("Liquid asset request not found"));
 
         transaction.setEmployee(employee);
         transaction.setLiquidAssetRequest(request);
@@ -69,15 +66,12 @@ public class LiquidAssetTransactionService {
         return transactionDTO.convertLiquidTransactionToDto(transactionRepo.findAll(pageable).getContent());
     }
 
-    public List<LiquidAssetTransactionDTO> getByEmployeeId(int employeeId, int page, int size) {
-        logger.info("Fetching liquid asset transactions by employee id {}, page: {}, size: {}", employeeId, page, size);
-        Pageable pageable = PageRequest.of(page, size);
-        return transactionDTO.convertLiquidTransactionToDto(transactionRepo.findByEmployeeId(employeeId, pageable).getContent());
+    // Removed pagination parameters here because it is not needed
+    public List<LiquidAssetTransactionDTO> getByEmployeeId(int employeeId) {
+        return transactionDTO.convertLiquidTransactionToDto(transactionRepo.findByEmployeeId(employeeId));
     }
 
     public List<LiquidAssetTransactionDTO> getByStatus(String status, int page, int size) throws ResourceNotFoundException {
-        logger.info("Fetching liquid asset transactions by status {}, page: {}, size: {}", status, page, size);
-
         PaymentStatus enumStatus;
         try {
             enumStatus = PaymentStatus.valueOf(status.toUpperCase());
@@ -87,5 +81,33 @@ public class LiquidAssetTransactionService {
         }
         Pageable pageable = PageRequest.of(page, size);
         return transactionDTO.convertLiquidTransactionToDto(transactionRepo.findByStatus(enumStatus, pageable).getContent());
+    }
+
+    @Transactional
+    public LiquidAssetTransaction updateTransactionByUsername(String username, LiquidAssetTransaction updated) throws ResourceNotFoundException {
+        LiquidAssetTransaction existing = transactionRepo.findByEmployeeUserUsername(username)
+            .orElseThrow(() -> new ResourceNotFoundException("Transaction not found for username: " + username));
+
+        if (updated.getAmountPaid() != 0)
+            existing.setAmountPaid(updated.getAmountPaid());
+        if (updated.getPaidOn() != null)
+            existing.setPaidOn(updated.getPaidOn());
+        if (updated.getPaymentMethod() != null)
+            existing.setPaymentMethod(updated.getPaymentMethod());
+        if (updated.getReferenceNumber() != null)
+            existing.setReferenceNumber(updated.getReferenceNumber());
+        if (updated.getStatus() != null)
+            existing.setStatus(updated.getStatus());
+        if (updated.getFinanceComments() != null)
+            existing.setFinanceComments(updated.getFinanceComments());
+
+        return transactionRepo.save(existing);
+    }
+
+    @Transactional
+    public void deleteTransactionByUsername(String username) throws ResourceNotFoundException {
+        LiquidAssetTransaction transaction = transactionRepo.findByEmployeeUserUsername(username)
+            .orElseThrow(() -> new ResourceNotFoundException("Transaction not found for username: " + username));
+        transactionRepo.delete(transaction);
     }
 }

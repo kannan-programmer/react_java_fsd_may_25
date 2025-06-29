@@ -12,7 +12,8 @@ import com.springboot.assetsphere.model.Asset;
 @Component
 public class AssetDTO {
 	private String categoryName;
-    private String assetNo;
+	private int assetId;
+	private String assetNo;
     private String assetName;
     private String model;
     private LocalDate manufacturingDate;
@@ -128,6 +129,17 @@ public class AssetDTO {
 	public void setImageUrl(String imageUrl) {
 		this.imageUrl = imageUrl;
 	}
+	 public int getAssetId() {
+			return assetId;
+		}
+
+
+
+		public void setAssetId(int assetId) {
+			this.assetId = assetId;
+		}
+
+
 
 
 
@@ -136,6 +148,7 @@ public class AssetDTO {
         list.forEach(a -> {
             AssetDTO dto = new AssetDTO();
             dto.setCategoryName(a.getCategory().getName());
+            dto.setAssetId(a.getId());
             dto.setAssetNo(a.getAssetNo());
             dto.setAssetName(a.getAssetName());
             dto.setModel(a.getModel());

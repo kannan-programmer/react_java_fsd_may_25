@@ -16,6 +16,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "asset_allocations")
 public class AssetAllocation {
+	
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;

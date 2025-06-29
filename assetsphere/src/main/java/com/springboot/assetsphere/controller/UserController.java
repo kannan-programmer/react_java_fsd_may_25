@@ -1,7 +1,9 @@
 package com.springboot.assetsphere.controller;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.springboot.assetsphere.exception.ResourceNotFoundException;
 import com.springboot.assetsphere.model.User;
@@ -16,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
@@ -30,36 +34,33 @@ public class UserController {
 
 	@PostMapping("/signup")
 	public User signUp(@RequestBody User user) {
-		logger.info("Signing up user with username: " + user.getUsername());
 		return userService.signUp(user);
 	}
 
 	@GetMapping("/all")
 	public List<User> getAllUsers() {
-		logger.info("Fetching all users");
 		return userService.getAllUsers();
 	}
 
 	@GetMapping("/getBy-username/{username}")
 	public User getUserByUsername(@PathVariable String username) {
-		logger.info("Fetching user by username: " + username);
 		return userService.getUserByUsername(username);
 	}
 
 	@GetMapping("/getBy-Id/{id}")
 	public User getUserById(@PathVariable int id) throws ResourceNotFoundException {
-		logger.info("Fetching user by ID: " + id);
 		return userService.getUserById(id);
 	}
 
 	@GetMapping("/token")
 	public ResponseEntity<?> getToken(Principal principal) {
 		try {
-			logger.info("Generating token for user: " + principal.getName());
-			String token = jwtUtil.createToken(principal.getName());
-			return ResponseEntity.status(HttpStatus.OK).body(token);
-		} catch (Exception e) {
-			logger.error("Error generating token: " + e.getMessage());
+		String token =jwtUtil.createToken(principal.getName()); 
+		Map<String, Object> map = new HashMap<>();
+		map.put("token", token);
+		return ResponseEntity.status(HttpStatus.OK).body(map);
+		}
+		catch(Exception e){
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
 		}
 	}

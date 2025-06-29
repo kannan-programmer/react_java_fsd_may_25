@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.springboot.assetsphere.exception.AssetNotFoundException;
+import com.springboot.assetsphere.exception.EmployeeNotFoundException;
 import com.springboot.assetsphere.exception.ResourceNotFoundException;
 
 @ControllerAdvice
@@ -36,4 +38,27 @@ public class GobalExceptionHandler {
 				.status(HttpStatus.NOT_FOUND)
 				.body(map);
 	}
+	
+	
+	
+	@ExceptionHandler(exception = AssetNotFoundException.class)
+	public ResponseEntity<?> handleAssetNotFoundException(AssetNotFoundException e) {
+		Map<String,String> map = new HashMap<>();
+		map.put("msg", e.getMessage());
+		logger.error(e.getMessage(), e.getClass());
+		return ResponseEntity
+				.status(HttpStatus.NOT_FOUND)
+				.body(map);
+	}
+	
+	@ExceptionHandler(exception = EmployeeNotFoundException.class)
+	public ResponseEntity<?> handleEmployeeNotFoundException(EmployeeNotFoundException e) {
+		Map<String,String> map = new HashMap<>();
+		map.put("msg", e.getMessage());
+		logger.error(e.getMessage(), e.getClass());
+		return ResponseEntity
+				.status(HttpStatus.NOT_FOUND)
+				.body(map);
+	}
+	
 }

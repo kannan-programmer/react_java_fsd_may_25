@@ -21,7 +21,7 @@ public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-
+    private String name;
     private String contactNumber;
     private String address;
     @Enumerated(EnumType.STRING)
@@ -49,6 +49,14 @@ public class Employee {
 	}
 
 
+	public String getName() {
+		return name;
+	}
+
+
+	public void setName(String name) {
+		this.name = name;
+	}
 
 
 	public String getContactNumber() {
@@ -91,6 +99,16 @@ public class Employee {
 	}
 
 
+	public String getJobTitle() {
+		return jobTitle;
+	}
+
+
+	public void setJobTitle(String jobTitle) {
+		this.jobTitle = jobTitle;
+	}
+
+
 	public LocalDate getCreatedAt() {
 		return createdAt;
 	}
@@ -111,16 +129,7 @@ public class Employee {
 	}
 
 
-	public String getJobTitle() {
-		return jobTitle;
-	}
-
-
-	public void setJobTitle(String jobTitle) {
-		this.jobTitle = jobTitle;
-	}
-
-
+	
 	
     
   

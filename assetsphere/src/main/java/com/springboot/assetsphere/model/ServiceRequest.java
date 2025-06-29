@@ -35,6 +35,19 @@ public class ServiceRequest {
 
     @ManyToOne
     private Employee employee;
+    
+    @ManyToOne
+    private AssetAllocation allocation;
+    
+    
+
+	public AssetAllocation getAllocation() {
+		return allocation;
+	}
+
+	public void setAllocation(AssetAllocation allocation) {
+		this.allocation = allocation;
+	}
 
 	public int getId() {
 		return id;
